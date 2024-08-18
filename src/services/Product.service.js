@@ -12,6 +12,7 @@ const {
   ProductVariant,
   VariantOption,
 } = require("../models");
+const sequelize = require("../models").sequelize;
 
 /**
  * Get all products *
@@ -100,57 +101,62 @@ exports.getProductById = async (id) => {
 /**
  * Get a product by name
  * @param {string} name - The name of the product
+ * @param {Object} options - The options object, which can include the transaction
  * @returns {Promise<Product>} A promise that contains the product
  *
  */
-exports.getProductByName = async (name) => {
-  return await Product.findOne({
-    where: {
-      name: name,
-    },
-    attributes: {
-      exclude: ["createdAt", "updatedAt"],
-    },
-    include: [
-      {
-        model: Variant,
-        as: "variants",
-        attributes: {
-          exclude: ["createdAt", "updatedAt"],
-        },
-        include: [
-          {
-            model: VariantOption,
-            as: "options",
-            attributes: { exclude: ["createdAt", "updatedAt"] },
+exports.getProductByName = async (name, options = {}) => {
+  return await Product.findOne(
+    {
+      where: {
+        name: name,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: Variant,
+          as: "variants",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
           },
-        ],
-        through: {
-          attributes: [],
+          include: [
+            {
+              model: VariantOption,
+              as: "options",
+              attributes: { exclude: ["createdAt", "updatedAt"] },
+            },
+          ],
+          through: {
+            attributes: [],
+          },
         },
-      },
-      {
-        model: Category,
-        as: "categories",
-        attributes: {
-          exclude: ["createdAt", "updatedAt"],
+        {
+          model: Category,
+          as: "categories",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          through: {
+            attributes: [],
+          },
         },
-        through: {
-          attributes: [],
-        },
-      },
-    ],
-  });
+      ],
+    },
+    options
+  );
 };
 
 /**
  * Create a product
  *
  * @param {Object} product - The product object
+ * @param {Object} options - The options object, which can include the transaction
  * @returns {Promise<Product>} A promise that contains the product
  */
-exports.createProduct = async (product) => {
-  return await Product.create(product);
+exports.createProduct = async (product, options = {}) => {
+  return await Product.create(product, options);
 };
 
 /**
@@ -158,29 +164,133 @@ exports.createProduct = async (product) => {
  *
  * @param {string} id - The id of the product
  * @param {Object} product - The product object
- * @returns {Promise<Product>} A promise that contains the product
+ * @param {Object} options - The options object, which can include the transaction
+ * @returns {Promise<boolean>} A promise that contains the product
  */
-exports.updateProduct = async (id, product) => {
-  const updateProduct = await Product.update(product, {
-    where: {
-      id,
+exports.updateProduct = async (id, product, options = {}) => {
+  const [affectedRows] = await Product.update(
+    product,
+    {
+      where: {
+        id,
+      },
     },
-  });
-  return updateProduct[1][0];
+    options
+  );
+  return affectedRows > 0;
+};
+
+/**
+ * Update categories of a product
+ * @param {string} productId - The id of the product
+ * @param {string[]} categoryIds - The ids of the categories
+ * @param {Object} options - The options object, which can include the transaction
+ * @returns {Promise<boolean>} A promise that contains the result
+ */
+exports.updateProductCategories = async (
+  productId,
+  categoryIds,
+  options = {}
+) => {
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    throw new Error("Product not found");
+  }
+  const currentCategories = await product.getCategories();
+  const currentCategoryIds = currentCategories.map((category) => category.id);
+  const categoriesToAdd = categoryIds.filter(
+    (categoryId) => !currentCategoryIds.includes(categoryId)
+  );
+  const categoriesToRemove = currentCategoryIds.filter(
+    (categoryId) => !categoryIds.includes(categoryId)
+  );
+  try {
+    if (categoriesToAdd.length === 0 && categoriesToRemove.length === 0) {
+      return false;
+    }
+    if (categoriesToAdd.length > 0) {
+      const categories = await Category.findAll({
+        where: {
+          id: categoriesToAdd,
+        },
+      });
+      await product.addCategories(categories, options);
+    }
+    if (categoriesToRemove.length > 0) {
+      const categories = await Category.findAll({
+        where: {
+          id: categoriesToRemove,
+        },
+      });
+      await product.removeCategories(categories, options);
+    }
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Update variants of a product
+ * @param {string} productId - The id of the product
+ * @param {string[]} variantIds - The ids of the variants
+ * @param {Object} options - The options object, which can include the transaction
+ * @returns {Promise<boolean>} A promise that contains the result
+ */
+exports.updateProductVariants = async (productId, variantIds, options = {}) => {
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    throw new Error("Product not found");
+  }
+  const currentVariants = await product.getVariants();
+  const currentVariantIds = currentVariants.map((variant) => variant.id);
+  const variantsToAdd = variantIds.filter(
+    (variantId) => !currentVariantIds.includes(variantId)
+  );
+  const variantsToRemove = currentVariantIds.filter(
+    (variantId) => !variantIds.includes(variantId)
+  );
+  try {
+    if (variantsToAdd.length === 0 && variantsToRemove.length === 0) {
+      return false;
+    }
+    if (variantsToAdd.length > 0) {
+      const variants = await Variant.findAll({
+        where: {
+          id: variantsToAdd,
+        },
+      });
+      await product.addVariants(variants, options);
+    }
+    if (variantsToRemove.length > 0) {
+      const variants = await Variant.findAll({
+        where: {
+          id: variantsToRemove,
+        },
+      });
+      await product.removeVariants(variants, options);
+    }
+    return true;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
  * Delete a product
  *
  * @param {string} id - The id of the product
- * @returns {Promise<void>} A promise that contains nothing
+ * @param {Object} options - The options object, which can include the transaction
+ * @returns {Promise<int>} A promise that contains the result 1 if deleted, 0 if not
+ * 
  */
 exports.deleteProduct = async (id) => {
-  await Product.destroy({
+  const result = await Product.destroy({
     where: {
       id,
     },
   });
+  return result;
 };
 
 /**

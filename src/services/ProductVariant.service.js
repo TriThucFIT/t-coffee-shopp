@@ -6,11 +6,12 @@ const { ProductVariant } = require("../models");
 /**
  * Create a productVariant
  * @param {object} productVariant - The productVariant object
+ * @param {Object} options - The transaction options
  * @returns {Promise<ProductVariant>} A promise that contains the productVariant
  *
  */
-exports.createProductVariant = async (productVariant) => {
-  return await ProductVariant.create(productVariant);
+exports.createProductVariant = async (productVariant, options = {}) => {
+  return await ProductVariant.create(productVariant, options);
 };
 
 /**

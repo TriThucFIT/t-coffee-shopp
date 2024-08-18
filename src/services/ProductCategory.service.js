@@ -7,30 +7,30 @@ const { ProductCategory } = require("../models");
 /**
  * Create a productCategory
  * @param {object} productCategory - The productCategory object
- *
+ * @param {Object} options - The transaction options
  * @returns {Promise<ProductCategory>} A promise that contains the productCategory
  *
  */
 
-exports.createProductCategory = async (productCategory) => {
-  return await ProductCategory.create(productCategory);
+exports.createProductCategory = async (productCategory, options = {}) => {
+  return await ProductCategory.create(productCategory, options);
 };
 
 /**
  * Update a productCategory
- * @param {string} id - The id of the productCategory
- * @param {object} productCategory - The productCategory object
+ * @param {string} CategoryId - The id of the Category
+ * @param {string} ProductId - The id of the Product
  * @returns {Promise<ProductCategory>} A promise that contains the productCategory
  *
  */
-exports.updateProductCategory = async (id, productCategory) => {
-  const updatedProductCategory = await ProductCategory.update(productCategory, {
+exports.updateProductCategory = async (CategoryId, ProductId) => {
+  const [affectedRows] = await ProductCategory.update(ProductId, {
     where: {
-      id,
+      CategoryId,
+      ProductId,
     },
-    returning: true,
   });
-  return updatedProductCategory[1][0];
+  return affectedRows;
 };
 
 /**
