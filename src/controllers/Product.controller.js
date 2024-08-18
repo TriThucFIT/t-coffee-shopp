@@ -31,6 +31,9 @@ exports.getAllProducts = async (req, res) => {
  */
 exports.getProductById = async (req, res) => {
   const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: "Please provide product id" });
+  }
   try {
     const product = await productService.getProductById(id);
     return product
@@ -98,7 +101,14 @@ exports.createProduct = async (req, res) => {
 
     await transaction.commit();
 
-    return res.status(201).json(product);
+    return res.status(201).json({
+      message: "Product created successfully",
+      result: {
+        id: product.id,
+        name: product.name,
+        image: product.image,
+      },
+    });
   } catch (error) {
     await transaction.rollback();
     console.log(error);
@@ -128,6 +138,10 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
   const product = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: "Please provide product id" });
+  }
 
   if (!product || Object.keys(product).length === 0) {
     return res.status(400).json({ error: "Please provide details to update" });
@@ -198,7 +212,7 @@ exports.deleteProduct = async (req, res) => {
   try {
     await productService.deleteProduct(id).then((result) => {
       console.log(result);
-      
+
       return result
         ? res.status(200).json({ message: `Product ${id} has been deleted` })
         : res

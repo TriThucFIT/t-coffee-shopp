@@ -282,7 +282,7 @@ exports.updateProductVariants = async (productId, variantIds, options = {}) => {
  * @param {string} id - The id of the product
  * @param {Object} options - The options object, which can include the transaction
  * @returns {Promise<int>} A promise that contains the result 1 if deleted, 0 if not
- * 
+ *
  */
 exports.deleteProduct = async (id) => {
   const result = await Product.destroy({
