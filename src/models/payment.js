@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
         defaultValue: DataTypes.UUIDV4
       },
         order_id: {
-        type: DataTypes.UUID,
+        type: DataTypes.STRING,
         references: {
             model: 'Orders',
             key: 'id'

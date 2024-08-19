@@ -6,8 +6,7 @@ module.exports = {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        type: Sequelize.STRING
       },
       customer_id: {
         type: Sequelize.STRING,
@@ -16,17 +15,21 @@ module.exports = {
           key: "id",
         },
       },
-      total_products: {
-        type: Sequelize.INTEGER,
+      shipping_address: {
+        type: Sequelize.TEXT,
+      },
+      shipping_fee: {
+        type: Sequelize.DOUBLE,
+        allowNull: false,
       },
       total_amount: {
         type: Sequelize.DOUBLE,
+        required: true
       },
       order_date: {
         type: Sequelize.DATE,
-      },
-      payment_method: {
-        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
       createdAt: {
         allowNull: false,

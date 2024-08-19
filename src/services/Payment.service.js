@@ -28,11 +28,12 @@ exports.getPaymentById = async (id) => {
 /**
  * Create a payment
  * @param {object} payment - The payment object
+ * @param {Object} options - The transaction options
  * @returns {Promise<Payment>} A promise that contains the payment
  */
 
-exports.createPayment = async (payment) => {
-  return await Payment.create(payment);
+exports.createPayment = async (payment, options = {}) => {
+  return await Payment.create(payment, options);
 };
 
 /**
@@ -80,6 +81,7 @@ exports.getPaymentsByOrderId = async (orderId) => {
     },
   });
 }
+
 
 
 

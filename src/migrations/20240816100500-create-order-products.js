@@ -17,14 +17,21 @@ module.exports = {
         }
       },
       order_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING,
         references: {
           model: 'Orders',
           key: 'id'
-        }
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
-      quality: {
-        type: Sequelize.INTEGER
+      quantity: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      price: {
+        type: Sequelize.DOUBLE,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,

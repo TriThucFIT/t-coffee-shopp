@@ -11,14 +11,14 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
       },
       order_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING,
         references: {
           model: "Orders",
           key: "id",
         },
       },
       payment_method: {
-        type: Sequelize.ENUM("card", "bank", "cash"),
+        type: Sequelize.ENUM('cash', 'momo', 'zalopay'),
         allowNull: false,
       },
       status: {
