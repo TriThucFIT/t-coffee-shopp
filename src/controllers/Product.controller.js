@@ -14,7 +14,6 @@ const ProductVariantService = require("../services/ProductVariant.service");
  * @param {Response} res - The response object
  */
 exports.getAllProducts = async (req, res) => {
-  
   try {
     const products = await productService.getAllProducts();
     res.status(200).json(products);
@@ -52,52 +51,94 @@ exports.getProductById = async (req, res) => {
  */
 exports.createProduct = async (req, res) => {
   const item = req.body;
+
   const transaction = await sequelize.transaction();
   try {
     const product = await productService.createProduct(
       {
         name: item?.name,
         price: item?.price,
-        image: item?.image,
+        image: req.file?.path,
         description: item?.description,
       },
       { transaction }
     );
+    if (item.categoryId) {
+      console.log("item.categoryId", item.categoryId);
 
-    for (const categoryId of item?.categoryId) {
-      const category = await categoryService.getCategoryById(categoryId);
-      if (!category) {
-        await transaction.rollback();
-        return res.status(404).json({
-          error: `Category ${categoryId} not found, Can't create product`,
-        });
+      for (const categoryId of item.categoryId) {
+        const category = await categoryService.getCategoryById(categoryId);
+        if (!category) {
+          await transaction.rollback();
+          return res.status(404).json({
+            error: `Category ${categoryId} not found, Can't create product`,
+          });
+        }
+
+        await ProductCategoryService.createProductCategory(
+          {
+            product_id: product.id,
+            category_id: category.id,
+          },
+          { transaction }
+        );
       }
-
-      await ProductCategoryService.createProductCategory(
-        {
-          product_id: product.id,
-          category_id: category.id,
-        },
-        { transaction }
-      );
     }
 
-    for (const variantId of item?.variantId) {
-      const variant = await variantService.getVariantById(variantId);
-      if (!variant) {
-        await transaction.rollback();
-        return res.status(404).json({
-          error: `Variant ${variantId} not found, Can't create product`,
-        });
-      }
+    if (item.variantId) {
+      console.log("item.variantId", item.variantId);
 
-      await ProductVariantService.createProductVariant(
-        {
-          product_id: product.id,
-          variant_id: variant.id,
-        },
-        { transaction }
-      );
+      for (const variantId of item?.variantId) {
+        const variant = await variantService.getVariantById(variantId);
+        if (!variant) {
+          await transaction.rollback();
+          return res.status(404).json({
+            error: `Variant ${variantId} not found, Can't create product`,
+          });
+        }
+
+        await ProductVariantService.createProductVariant(
+          {
+            product_id: product.id,
+            variant_id: variant.id,
+          },
+          { transaction }
+        );
+      }
+      for (const variantId of item?.variantId) {
+        const variant = await variantService.getVariantById(variantId);
+        if (!variant) {
+          await transaction.rollback();
+          return res.status(404).json({
+            error: `Variant ${variantId} not found, Can't create product`,
+          });
+        }
+
+        await ProductVariantService.createProductVariant(
+          {
+            product_id: product.id,
+            variant_id: variant.id,
+          },
+          { transaction }
+        );
+      }
+      for (const variantId of item?.variantId) {
+        const variant = await variantService.getVariantById(variantId);
+        if (!variant) {
+          await transaction.rollback();
+          return res.status(404).json({
+            error: `Variant ${variantId} not found, Can't create product`,
+          });
+        }
+
+        await ProductVariantService.createProductVariant(
+          {
+            product_id: product.id,
+            variant_id: variant.id,
+          },
+          { transaction }
+        );
+      }
     }
 
     await transaction.commit();
@@ -152,6 +193,11 @@ exports.updateProduct = async (req, res) => {
   let updateResult = "";
 
   try {
+    if (req.file) {
+      product.image = req.file?.path;
+    }
+    console.log("product", product);
+
     const productUpdateResult = await productService.updateProduct(
       id,
       product,
@@ -169,7 +215,7 @@ exports.updateProduct = async (req, res) => {
       );
       updateResult += categoryUpdateResult
         ? "Update categories has been success\n"
-        : "";
+        : ""; 
     }
 
     if (product.variantId && product.variantId.length > 0) {
@@ -300,6 +346,36 @@ exports.getOrderByProductId = async (req, res) => {
   try {
     const order = await productService.getOrdersByProductId(id);
     res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Upload image
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ */
+exports.updateImage = async (req, res) => {
+  console.log(req);
+
+  const id = req.params.id;
+  try {
+    const product = await productService.getProductById(id);
+    if (!product) {
+      return res.status(404).json({ error: `Product ${id} not found` });
+    }
+    if (req.file) {
+      const result = await productService.updateProduct(id, {
+        image: req.file.path,
+      });
+
+      return result
+        ? res.status(200).json({ message: "Image uploaded successfully" })
+        : res.status(500).json({ error: "Image upload failed" });
+    } else {
+      return res.status(400).json({ error: "Please provide an image" });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
