@@ -31,4 +31,4 @@ jobs:
     - run: |
         touch .env
         echo "${{secrets.TCOFFEE_ENV}}" > /t-coffee-shopp/t-coffee-shopp/.env
-    
+        pm2 restart t-coffee-be
