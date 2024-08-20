@@ -1,7 +1,5 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const cors = require("cors");
-const dbConnection = require("./src/config/dbConnection");
 const insertDataToDB = require("./src/utils/insertDataToDB");
 
 const productRouter = require("./src/routes/Product.routes");
@@ -14,8 +12,6 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
 
 dotenv.config();
-dbConnection();
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -38,12 +34,12 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", allowedOrigins);
   if (allowedCors) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
   return next();
 });
-// app.use(cors());
+
 
 const options = {
   customCss: ".swagger-ui .topbar { display: none }",

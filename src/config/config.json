@@ -17,9 +17,9 @@
   },
   "production": {
     "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
+    "password": "rootpassword",
+    "database": "tcoffee",
+    "host": "tcoffee.c5mwy4oay2q7.ap-southeast-1.rds.amazonaws.com",
     "dialect": "mysql"
   }
 }
