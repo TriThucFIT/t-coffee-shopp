@@ -196,7 +196,6 @@ exports.updateProduct = async (req, res) => {
     if (req.file) {
       product.image = req.file?.path;
     }
-    console.log("product", product);
 
     const productUpdateResult = await productService.updateProduct(
       id,

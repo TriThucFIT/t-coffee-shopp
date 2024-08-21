@@ -13,11 +13,11 @@ module.exports = (sequelize) => {
     id: {
       allowNull: false,
       primaryKey: true,
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4
+      type: DataTypes.INTEGER,
+      autoIncrement: true
     },
     product_id: {
-      type: DataTypes.UUID,
+      type: DataTypes.INTEGER,
       references: {
         model: 'Products',
         key: 'id'

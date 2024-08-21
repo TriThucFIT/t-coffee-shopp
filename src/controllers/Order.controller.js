@@ -8,6 +8,7 @@ const sequelize = require("../models").sequelize;
 const orderService = require("../services/Order.service");
 const OrderProductService = require("../services/OrderProduct.service");
 const ProductService = require("../services/Product.service");
+const CustomerService = require("../services/Customer.service");
 
 /**
  * Get all orders
@@ -54,7 +55,34 @@ exports.createOrder = async (req, res) => {
   const order = req.body;
   const transaction = await sequelize.transaction();
   try {
-    const newOrder = await orderService.createOrder(order, { transaction });
+    let customerId = order.customer.id;
+    let customer = await CustomerService.getCustomerById(customerId, {
+      transaction,
+    });
+    if (!customer) {
+      const newCustomer = await CustomerService.createCustomer(
+        {
+          id: order.customer.id,
+          name: order.customer.name,
+          phone_number: order.customer.phone,
+          address: order.shipping_address,
+        },
+        { transaction }
+      );
+
+      if (!newCustomer) {
+        throw new Error("Failed to create a new customer");
+      }
+      customerId = newCustomer.id;
+    }
+    const newOrder = await orderService.createOrder(
+      {
+        ...order,
+        customer_id: customerId,
+      },
+      { transaction }
+    );
+
     const newOrderProducts = await Promise.all(
       order?.products?.map(async (orderProduct) => {
         const product = await ProductService.getProductById(
@@ -64,6 +92,7 @@ exports.createOrder = async (req, res) => {
         if (!product) {
           throw new Error(`Product ${orderProduct.product_id} not found`);
         }
+
         return await OrderProductService.createOrderProduct(
           {
             order_id: newOrder.id,
@@ -75,6 +104,7 @@ exports.createOrder = async (req, res) => {
         );
       })
     );
+
     await transaction.commit();
     return res.status(201).json({ newOrder, newOrderProducts });
   } catch (error) {
@@ -112,7 +142,7 @@ exports.deleteOrder = async (req, res) => {
   const transaction = await sequelize.transaction();
   console.log("Deleting order : ", id);
   try {
-    const order = await orderService.getOrderById(id);
+    const order = await orderService.getOrderById(id, { transaction });
 
     if (!order) {
       return res.status(404).json({
@@ -123,13 +153,15 @@ exports.deleteOrder = async (req, res) => {
     await OrderProductService.deleteOrderProductsByOrderId(id, { transaction });
     await orderService.deleteOrder(id, { transaction });
     transaction.commit();
-    res.status(204).json({
-      message: `Order ${id} deleted`,
-    });
+    console.log("Order deleted");
+    
+    return res.status(200).json({
+      message: `Order ${id} deleted successfully`,
+    })
   } catch (error) {
     console.log("Error", error);
     transaction.rollback();
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 

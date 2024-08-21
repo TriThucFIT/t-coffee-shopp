@@ -7,6 +7,7 @@ const orderRouter = require("./src/routes/Order.routes");
 const paymentRouter = require("./src/routes/Payment.routes");
 const categoryRouter = require("./src/routes/Category.routes");
 const variantRouter = require("./src/routes/Variant.routes");
+const customerRouter = require("./src/routes/Customer.routes");
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
@@ -61,6 +62,7 @@ app.use(`/api/${process.env.API_VERSION}/order`, orderRouter);
 app.use(`/api/${process.env.API_VERSION}/payment`, paymentRouter);
 app.use(`/api/${process.env.API_VERSION}/category`, categoryRouter);
 app.use(`/api/${process.env.API_VERSION}/variant`, variantRouter);
+app.use(`/api/${process.env.API_VERSION}/customer`, customerRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

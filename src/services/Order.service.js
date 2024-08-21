@@ -12,7 +12,8 @@
  * @returns {Promise<Order>} A promise that contains the order
  *
  */
-const { Order, OrderProduct, Product } = require("../models");
+const { or } = require("sequelize");
+const { Order, OrderProduct, Product, Customer } = require("../models");
 
 exports.createOrder = async (order, options = {}) => {
   return await Order.create(order, options);
@@ -26,41 +27,33 @@ exports.getAllOrders = async () => {
   return await Order.findAll({
     include: [
       {
-        model: OrderProduct,
-        as: "orderProducts",
-        include: [
-          {
-            model: Product,
-            as: "product",
-          },
-        ],
+        model: Customer,
+        as: "customer",
+        attributes: { exclude: ["createdAt", "updatedAt"] },
       },
     ],
-    attributes: { exclude: ["order_id", "product_id", "createAt", "updateAt"] },
+    attributes: { exclude: ["order_id", "createdAt", "updatedAt"] },
+    order: [["order_date", "DESC"]],
   });
 };
 
 /**
  * Get an order by id
  * @param {string} id - The order id
+ * @param {Object} options - The transaction options
  * @returns {Promise<Order>} A promise that contains the order
  */
-exports.getOrderById = async (id) => {
+exports.getOrderById = async (id, options = {}) => {
   return await Order.findByPk(id, {
     include: [
       {
-        model: OrderProduct,
-        as: "orderProducts",
-        include: [
-          {
-            model: Product,
-            as: "product",
-          },
-        ],
+        model: Customer,
+        as: "customer",
+        attributes: { exclude: ["createdAt", "updatedAt"] },
       },
     ],
-    attributes: { exclude: ["order_id", "product_id", "createAt", "updateAt"] },
-  });
+    attributes: { exclude: ["order_id", "createdAt", "updatedAt"] },
+  }, options);
 };
 
 /**

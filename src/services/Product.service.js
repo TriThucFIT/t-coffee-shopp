@@ -12,7 +12,6 @@ const {
   ProductVariant,
   VariantOption,
 } = require("../models");
-const sequelize = require("../models").sequelize;
 
 /**
  * Get all products *

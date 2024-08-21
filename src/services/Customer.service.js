@@ -11,28 +11,32 @@ const { Customer } = require("../models");
  *
  */
 exports.getAllCustomers = async () => {
-  return await Customer.findAll();
+  return await Customer.findAll({
+    order: [["createdAt", "DESC"]],
+  });
 };
 
 /**
  * Get a customer by id
  * @param {string} id - The id of the customer
+ * @param {Object} options - The options for the query, e.g., transaction
  * @returns {Promise<Customer>} A promise that contains the customer
  *
  */
-exports.getCustomerById = async (id) => {
-  return await Customer.findByPk(id);
+exports.getCustomerById = async (id, options = {}) => {
+  return await Customer.findByPk(id, options);
 };
 
 /**
  * Create a customer
  * @param {object} customer - The customer object
+ * @param {Object} options - The options for the query, e.g., transaction
  * @returns {Promise<Customer>} A promise that contains the customer
  *
  */
-exports.createCustomer = async (customer) => {
-  return await Customer.create(customer);
-}
+exports.createCustomer = async (customer, options = {}) => {
+  return await Customer.create(customer, options);
+};
 
 /**
  * Update a customer
@@ -41,15 +45,18 @@ exports.createCustomer = async (customer) => {
  * @returns {Promise<Customer>} A promise that contains the customer
  *
  */
-exports.updateCustomer = async (id, customer) => {
-  const updatedCustomer = await Customer.update(customer, {
-    where: {
-      id,
+exports.updateCustomer = async (id, customer, options = {}) => {
+  const [affectRow] = await Customer.update(
+    customer,
+    {
+      where: {
+        id,
+      },
     },
-    returning: true,
-  });
-  return updatedCustomer[1][0];
-}
+    options
+  );
+  return affectRow;;
+};
 
 /**
  * Delete a customer
@@ -63,7 +70,7 @@ exports.deleteCustomer = async (id) => {
       id,
     },
   });
-}
+};
 
 /**
  * Get all orders of a customer
@@ -74,5 +81,4 @@ exports.getOrdersByCustomerId = async (customerId) => {
   return await Customer.findByPk(customerId, {
     include: "Orders",
   });
-}
-
+};
